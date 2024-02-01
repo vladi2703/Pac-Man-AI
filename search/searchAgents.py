@@ -268,9 +268,6 @@ def euclideanHeuristic(position, problem, info={}):
     xy2 = problem.goal
     return ( (xy1[0] - xy2[0]) ** 2 + (xy1[1] - xy2[1]) ** 2 ) ** 0.5
 
-#####################################################
-# This portion is incomplete.  Time to write code!  #
-#####################################################
 
 class CornersProblem(search.SearchProblem):
     """
@@ -472,8 +469,31 @@ def foodHeuristic(state: Tuple[Tuple, List[List]], problem: FoodSearchProblem):
     problem.heuristicInfo['wallCount']
     """
     position, foodGrid = state
-    "*** YOUR CODE HERE ***"
-    return 0
+    if problem.isGoalState(state):
+        return 0
+    # distance between futhrermost dots + distance to closer fruit
+    # distance between furthermost dots will be traveled in either case
+    # it's better to go to the closer one first 
+    
+    position, foodGrid = state                  # Get the parent position and food Grid
+    food = foodGrid.asList()
+    maxDistance = 0
+    distanceToCloser = 1000000
+    # First, we find the two dots with the biggest distance
+    # Initialize both as the first dot in the food grid
+    # There is at least one dot, otherwise a goal state would have been detected
+    food1 = food[0]
+    food2 = food[0]
+    for i in range(len(food)):
+        for j in range(i + 1, len(food)):
+            dist = util.manhattanDistance(food[i], food[j])
+            if dist > maxDistance:
+                maxDistance = dist
+                food1 = food[i]
+                food2 = food[j]
+    
+    distanceToCloser = min((util.manhattanDistance(position, food1), util.manhattanDistance(position, food2)) )
+    return maxDistance + distanceToCloser
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
