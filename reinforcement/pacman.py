@@ -51,6 +51,7 @@ import sys
 import types
 import time
 import random
+import fileinput
 import os
 
 ###################################################
@@ -622,12 +623,13 @@ def readCommand(argv):
     if options.gameToReplay != None:
         print('Replaying recorded game %s.' % options.gameToReplay)
         import pickle
-        f = open(options.gameToReplay)
+        f = open(options.gameToReplay, 'rb')
         try:
             recorded = pickle.load(f)
         finally:
             f.close()
         recorded['display'] = args['display']
+        recorded['horizon'] = args['horizon']
         replayGame(**recorded)
         sys.exit(0)
 
@@ -662,13 +664,13 @@ def loadAgent(pacman, nographics):
                     ' is not specified in any *Agents.py.')
 
 
-def replayGame(layout, actions, display):
+def replayGame(layout,horizon, actions, display):
     import pacmanAgents
     import ghostAgents
     rules = ClassicGameRules()
     agents = [pacmanAgents.GreedyAgent()] + [ghostAgents.RandomGhost(i+1)
                                              for i in range(layout.getNumGhosts())]
-    game = rules.newGame(layout, agents[0], agents[1:], display)
+    game = rules.newGame(layout,horizon, agents[0], agents[1:], display)
     state = game.state
     display.initialize(state.data)
 
@@ -713,9 +715,9 @@ def runGames(layout, horizon, pacman, ghosts, display, numGames, record, numTrai
             import pickle
             fname = ('recorded-game-%d' % (i + 1)) + \
                 '-'.join([str(t) for t in time.localtime()[1:6]])
-            f = file(fname, 'w')
+            f = open(fname, 'wb')
             components = {'layout': layout, 'actions': game.moveHistory}
-            pickle.dump(components, f)
+            pickle.dump(components, f, protocol=pickle.HIGHEST_PROTOCOL)
             f.close()
 
     if (numGames-numTraining) > 0:
