@@ -704,21 +704,24 @@ def runGames(layout, horizon, pacman, ghosts, display, numGames, record, numTrai
         else:
             gameDisplay = display
             rules.quiet = False
+            if record:
+                import time
+                import pickle
+                if not os.path.exists('replays'):
+                    os.mkdir('replays')
+                fname = ('replays/recorded-game-%d' % (i + 1)) + \
+                    '-'.join([str(t) for t in time.localtime()[1:6]])
+                f = open(fname, 'wb')
+                components = {'layout': layout, 'actions': game.moveHistory}
+                pickle.dump(components, f, protocol=pickle.HIGHEST_PROTOCOL)
+                f.close()
+
         game = rules.newGame(layout, horizon, pacman, ghosts,
                              gameDisplay, beQuiet, catchExceptions)
         game.run()
         if not beQuiet:
             games.append(game)
 
-        if record:
-            import time
-            import pickle
-            fname = ('recorded-game-%d' % (i + 1)) + \
-                '-'.join([str(t) for t in time.localtime()[1:6]])
-            f = open(fname, 'wb')
-            components = {'layout': layout, 'actions': game.moveHistory}
-            pickle.dump(components, f, protocol=pickle.HIGHEST_PROTOCOL)
-            f.close()
 
     if (numGames-numTraining) > 0:
         scores = [game.state.getScore() for game in games]
